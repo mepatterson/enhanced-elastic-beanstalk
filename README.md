@@ -1,15 +1,19 @@
 # ElasticBeanstalk
-[![Gem Version](https://badge.fury.io/rb/elastic-beanstalk.svg)](https://rubygems.org/gems/elastic-beanstalk)
-
 Configure and deploy a rails app to Elastic Beanstalk via rake in 60 seconds.  Maintain multiple environment DRY configurations and .ebextensions in one easy to use yaml configuration file.
 
 This gem simplifies configuration, and passes the heavy lifting to the [eb_deployer](https://github.com/ThoughtWorksStudios/eb_deployer) from ThoughtWorksStudios.
+
+*IMPORTANT!*
+This fork of `elastic-beanstalk` has some enhancements that we felt weren't
+worthy of a pull request to the original project, thus the forked version.
+Unless you specifically need HipChat support and custom eb env names, it is
+recommended you go use the latest version of the original gem. https://github.com/alienfast/elastic-beanstalk
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'elastic-beanstalk'
+    gem 'enhanced-elastic-beanstalk'
 
 And then execute:
 
@@ -17,7 +21,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install elastic-beanstalk
+    $ gem install enhanced-elastic-beanstalk
 
 ## Features
 
@@ -51,7 +55,7 @@ Something like this should get you started
 app: acme
 region: us-east-1
 solution_stack_name: 64bit Amazon Linux 2015.03 v2.0.0 running Ruby 2.2 (Passenger Standalone)
-strategy: inplace-update 
+strategy: inplace-update
 keep_latest: 10
 development:
   options:
@@ -59,7 +63,7 @@ development:
       InstanceType: t1.micro
 
 production:
-  strategy: blue-green 
+  strategy: blue-green
   options:
     aws:autoscaling:launchconfiguration:
       InstanceType: t1.small
@@ -98,14 +102,14 @@ For example, this would create a snapshot prior to the deployment (and migration
     rake eb:rds:create_snapshot[acme, pre-1.1.0] eb:deploy[1.1.0]
 
 ### Using RAILS_ENV vs :environment:  
-Some people prefer to use `RAILS_ENV`, others prefer to use the `:environment` argument.  Both are accepted. Depending on the use case, each one can be DRYer than the other. 
+Some people prefer to use `RAILS_ENV`, others prefer to use the `:environment` argument.  Both are accepted. Depending on the use case, each one can be DRYer than the other.
 Where the task specifies `[:environment, :version]`, consider the `:environment` optional if you want to use the default of `development` or utilize the `RAILS_ENV` instead.  
 
-**NOTE:** if using the argument `:environment`, you **must** specify it for **both** the `eb:package` and `eb:deploy`, as `eb:package` is responsible for injecting the `RACK_ENV` and `RAILS_ENV` 
+**NOTE:** if using the argument `:environment`, you **must** specify it for **both** the `eb:package` and `eb:deploy`, as `eb:package` is responsible for injecting the `RACK_ENV` and `RAILS_ENV`
 in `aws:elasticbeanstalk:application:environment` section of the `.ebextensions` file.
-     
-### :version 
-If not specified, version will be auto-generated via and MD5 hash of the package file. If specified to the `eb:package` task, the version will be available as the `APP_VERSION` 
+
+### :version
+If not specified, version will be auto-generated via and MD5 hash of the package file. If specified to the `eb:package` task, the version will be available as the `APP_VERSION`
 environment variable, specified in the `aws:elasticbeanstalk:application:environment` section of the `.ebextensions` file.  
 
 
@@ -118,7 +122,7 @@ Deploy version 1.1.3 of acme to production using the `:environment` parameter
 Deploy version 1.1.3 of acme to production using `RAILS_ENV`
 
     $ RAILS_ENV=production rake eb:package[1.1.3] eb:deploy[1.1.3]
-    
+
 Deploy an MD5 hashed version of acme to production using the `:environment` parameter
 
     $ rake eb:package[production] eb:deploy[production]
@@ -126,11 +130,11 @@ Deploy an MD5 hashed version of acme to production using the `:environment` para
 Deploy an MD5 hashed version of acme to production using `RAILS_ENV`
 
     $ RAILS_ENV=production rake eb:package eb:deploy
-    
+
 Deploy an MD5 hashed version of acme to development
 
     $ rake eb:package eb:deploy
-        
+
 
 config/eb.yml
 
@@ -199,7 +203,7 @@ options:
     # Restrict to Reserved Instance zone: http://stackoverflow.com/a/33131364/2363935
     'Custom Availability Zones': us-east-1c
     'Availability Zones': Any 1
-    
+
 
   aws:elb:loadbalancer:
     SSLCertificateId: 'arn:aws:iam::XXXXXXX:server-certificate/acme'
@@ -213,7 +217,7 @@ options:
 
   aws:elasticbeanstalk:application:
     Application Healthcheck URL: '/health'
-    
+
 #---
 # Set "inactive_settings" for saving cost on blue green deployment
 #  https://github.com/ThoughtWorksStudios/eb_deployer/wiki/Elastic-Beanstalk-Tips-and-Tricks#set-inactive_settings-for-saving-cost-on-blue-green-deployment    
@@ -239,7 +243,7 @@ production:
 
 ## ENV interpolation
 
-ENV variable interpolation is provided by [dry-config](https://github.com/alienfast/dry-config/blob/master/README.md#env-interpolationsubstitutionexpansion).  Any of the values in the `eb.yml` may contain interpolated values. 
+ENV variable interpolation is provided by [dry-config](https://github.com/alienfast/dry-config/blob/master/README.md#env-interpolationsubstitutionexpansion).  Any of the values in the `eb.yml` may contain interpolated values.
 
 The following formats are acceptable:
 
@@ -287,4 +291,4 @@ Please contribute! While this is working great, a greater scope of functionality
 
 ## Copyright and License
 
-Copyright (c) 2014-2015 AlienFast, LLC. MIT License, see LICENSE.txt for further details.
+MIT License, see LICENSE.txt for further details.
