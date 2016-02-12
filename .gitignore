@@ -91,3 +91,4 @@ pickle-email-*.html
 .secrets/
 pkg/
 *_secrets.zip
+*.gem
