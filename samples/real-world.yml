@@ -1,0 +1,88 @@
+# http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html#command-options-ruby
+#
+# This is a sample that has not been executed so it may not be exactly 100%, but is intended to show
+#   that access to full options_settings and .ebextensions is intended.
+#---
+app: acme
+region: us-east-1
+# http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html
+solution_stack_name: 64bit Amazon Linux 2015.03 v2.0.0 running Ruby 2.2 (Passenger Standalone)
+strategy: inplace-update # default to inplace-update to avoid starting new environments
+keep_latest: 10
+package:
+  verbose: true
+  includes:  ['public/assets/.sprockets-manifest-*.json'] # ensure '.' manifest is added when using assets:precompile
+  exclude_dirs: [features, spec, target, coverage, vcr, flows]  # additional dirs that merge with default excludes
+  exclude_files: [.ruby-*,  rspec.xml, README*, db/*.sqlite3, bower.json]
+smoke_test: |
+    lambda { |host|
+      EbSmokeTester.test_url("http://#{host}/health", 600, 5, 'All good! Everything is up and checks out.')
+    }
+#--
+ebextensions:
+  # General settings for the server environment
+  01-environment.config:
+    commands:
+      01timezone:
+        command: "ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime"
+
+  # These are things that make sense for any Ruby application
+  02-ruby.config:
+    # Install git in order to be able to bundle gems from git
+    packages:
+      yum:
+        git: []
+        patch: []
+
+  # Run rake tasks before an application deployment
+  03-rake.config:
+    container_commands:
+      01seed:
+        command: rake db:seed
+        leader_only: true
+
+#---
+options:
+
+  # Any environment variables - will be available in ENV
+  aws:elasticbeanstalk:application:environment:
+    FOO: 'bar'
+    RAILS_SKIP_ASSET_COMPILATION: true # Use if doing asset compilation before packaging (recommended)
+
+
+  aws:autoscaling:launchconfiguration:
+    EC2KeyName: eb-ssh
+    SecurityGroups: 'acme-production-control'
+
+  aws:autoscaling:asg:
+    MinSize: 1
+    MaxSize: 5
+    # Restrict to Reserved Instance zone: http://stackoverflow.com/a/33131364/2363935
+    'Custom Availability Zones': us-east-1c
+    'Availability Zones': Any 1
+
+  aws:elb:loadbalancer:
+    SSLCertificateId: 'arn:aws:iam::XXXXXXX:server-certificate/acme'
+    LoadBalancerHTTPSPort: 443
+
+  aws:elb:policies:
+    Stickiness Policy: true
+
+  aws:elasticbeanstalk:sns:topics:
+    Notification Endpoint: 'alerts@acme.com'
+
+  aws:elasticbeanstalk:application:
+    Application Healthcheck URL: '/health'
+#---
+development:
+  options:
+    aws:autoscaling:launchconfiguration:
+      InstanceType: t1.micro
+    aws:elasticbeanstalk:application:environment:
+      RAILS_SKIP_ASSET_COMPILATION: true
+#---
+production:
+  strategy: blue-green # always fire up a new environment and healthcheck before transitioning cname
+  options:
+    aws:autoscaling:launchconfiguration:
+      InstanceType: t1.small
