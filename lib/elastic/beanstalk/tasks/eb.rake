@@ -8,7 +8,6 @@ require 'yaml'
 require 'table_print'
 require 'timeout'
 require 'hipchat'
-require 'pry'
 
 namespace :eb do
 
