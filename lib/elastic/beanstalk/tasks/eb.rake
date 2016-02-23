@@ -333,6 +333,7 @@ namespace :eb do
         option_settings: EbConfig.option_settings,
         inactive_settings: EbConfig.inactive_settings,
         strategy: EbConfig.strategy.to_sym,
+        phoenix_mode: EbConfig.phoenix_mode || false,
         package: package
     }
 
